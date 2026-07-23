@@ -32,8 +32,8 @@ exports.handler = async (event) => {
         }
 
         // Отправка в Telegram через Bot API
-        const botToken = process.env.TELEGRAM_BOT_TOKEN;
-        const chatId = process.env.TELEGRAM_CHAT_ID;
+        const botToken = "8961899780:AAGUBR-ve4PSdX86Vniv-l1kJx3f7qm0njE";
+		const chatId = "-5527664230"; // свой ID
         if (!botToken || !chatId) {
             return {
                 statusCode: 500,
